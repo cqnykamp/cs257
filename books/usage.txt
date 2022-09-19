@@ -1,0 +1,24 @@
+NAME
+    books - A tool to search through books
+
+SYNOPSIS
+    books [-h | --help] <command> <args>
+
+DESCRIPTION
+    This program searches through a list of books.
+
+OPTIONS
+    -h, --help
+        Prints the synopsis and a list of all commands.
+
+
+COMMANDS
+
+    t, title <substring> [-a, --alphabetical | -c, --chronological]
+        Search by substring of a title. Input substring to search. Prints out all the titles that match, sorted either alphabetically or by publication date. Defaults to alphabetical.
+
+    a, author <substring>
+        Search by substring of an author's name. Input substring to search. Prints out all the titles of each applicable author.
+
+    d, date <starting year> <ending year>
+        Search by publication date. Input starting year and ending year. Prints out all books inside its range, inclusive.
