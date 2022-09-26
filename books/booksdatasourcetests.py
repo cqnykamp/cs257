@@ -2,7 +2,7 @@
    booksdatasourcetest.py
    Jeff Ondich, 24 September 2021
 
-   Modified by Luca Araújo and Charles Nykamp, 23 September 2022
+   Modified by Luca Araújo and Charles Nykamp, 26 September 2022
 
 '''
 
@@ -48,11 +48,11 @@ class BooksDataSourceTester(unittest.TestCase):
         self.assertTrue(len(authors) == 0)
     
     def test_author_same_surname(self):
-        authors = self.data_source.authors('Brontë')
+        authors = self.data_source.authors('Bront\u00eb')
         self.assertTrue(len(authors) == 3)
-        self.assertTrue(authors[0] == Author('Brontë', 'Ann'))
-        self.assertTrue(authors[1] == Author('Brontë', 'Charlotte'))
-        self.assertTrue(authors[2] == Author('Brontë', 'Emily'))
+        self.assertTrue(authors[0] == Author('Bront\u00eb', 'Ann'))
+        self.assertTrue(authors[1] == Author('Bront\u00eb', 'Charlotte'))
+        self.assertTrue(authors[2] == Author('Bront\u00eb', 'Emily'))
     
     def test_author_search_only_given_name(self):
         authors = self.data_source.authors('peg')
@@ -62,7 +62,7 @@ class BooksDataSourceTester(unittest.TestCase):
     def test_author_two_word_surname(self):
         authors = self.data_source.authors('garc')
         self.assertTrue(len(authors) == 1)
-        self.assertTrue(authors[0] == Author('García Márquez', 'Gabriel'))
+        self.assertTrue(authors[0] == Author('Garc\u00eda M\u00e1rquez', 'Gabriel'))
 
     def test_author_abbreviated_given_name(self):
         authors = self.data_source.authors('V.')
@@ -73,6 +73,7 @@ class BooksDataSourceTester(unittest.TestCase):
         authors = self.data_source.authors('Haruki Murakami')
         self.assertTrue(len(authors) == 1)
         self.assertTrue(authors[0] == Author('Murakami', 'Haruki'))
+
 
 
     def test_books_normal_keyword(self):
@@ -91,14 +92,14 @@ class BooksDataSourceTester(unittest.TestCase):
         books = tiny_data_source.books('M', 'year')
         self.assertTrue(len(books) == 2)
         self.assertTrue(books[0] == Book("Emma"))
-        self.assertTrue(books[1] == Book("Omma"))
+        self.assertTrue(books[1] == Book("Omoo"))
 
     def test_books_sort_by_title(self):
         tiny_data_source = BooksDataSource('tinybooks.csv')
         books = tiny_data_source.books('M', 'title')
         self.assertTrue(len(books) == 2)
         self.assertTrue(books[0] == Book("Emma"))
-        self.assertTrue(books[1] == Book("Omma"))
+        self.assertTrue(books[1] == Book("Omoo"))
 
     def test_books_nonexistent_keyword(self):
         tiny_data_source = BooksDataSource('tinybooks.csv')
@@ -106,48 +107,45 @@ class BooksDataSourceTester(unittest.TestCase):
         self.assertTrue(len(books) == 0)
 
 
-    
-
-
-    
 
     def test_wrong_input_type_to_years(self):
-        self.assertRaises(TypeError, self.books_between_years, 1920, [1940])
-        self.assertRaises(TypeError, self.books_between_years, [], [])
-        self.assertRaises(TypeError, self.books_between_years, "bom dia", 1940)
-        self.assertRaises(TypeError, self.books_between_years, "asd", [])
+        self.assertRaises(TypeError, self.data_source.books_between_years(), 1920, [1940])
+        self.assertRaises(TypeError, self.data_source.books_between_years(), [], [])
+        self.assertRaises(TypeError, self.data_source.books_between_years(), "bom dia", 1940)
+        self.assertRaises(TypeError, self.data_source.books_between_years(), "asd", [])
 
     def test_all_books_years(self):
-        self.assertEqual(len(self.books_between_years), len(self.data_source))
+        self.assertEqual(len(self.data_source.books_between_years()), len(self.data_source.books()))
 
     def test_no_books_years(self):
-        self.assertEqual(len(self.books_between_years(100000, 100001), 0))
+        self.assertEqual(len(self.data_source.books_between_years(100000, 100001)), 0)
 
     def test_inverted_range_years(self):
-        self.assertEqual(len(self.books_between_years(1000000, 0), 0))
-
+        self.assertEqual(len(self.data_source.books_between_years(1000000, 0)), 0)
+    
     def test_sorted_by_year(self):
         tiny_data_source = BooksDataSource('tinybooks.csv')
-        books = tiny_data_source.books_beween_years()
+        books = tiny_data_source.books_between_years()
         self.assertTrue(len(books) == 3)
         self.assertTrue(books[0].title == 'Emma')
         self.assertTrue(books[1].title == 'Omoo')
         self.assertTrue(books[2].title == 'Neverwhere')
-
+ 
     def test_sorted_tied_years(self):
-        books = self.books_between_years(1982, 1987)
-        assertEqual(books[0].title, 'A Wild Sheep Chase')
-        assertEqual(books[1].title, 'Hard-Boiled Wonderland and the End of the World')
-        assertEqual(books[2].title, 'Love in the Time of Cholera')
-        assertEqual(books[3].title, 'Shards of Honor')
-        assertEqual(books[4].title, 'Beloved')
+        books = self.data_source.books_between_years(1982, 1987)
+        self.assertEqual(books[0].title, 'A Wild Sheep Chase')
+        self.assertEqual(books[1].title, 'Hard-Boiled Wonderland and the End of the World')
+        self.assertEqual(books[2].title, 'Love in the Time of Cholera')
+        self.assertEqual(books[3].title, 'Shards of Honor')
+        self.assertEqual(books[4].title, 'Beloved')
 
     def test_years_no_ending(self):
-        assertEqual(self.books_between_years(1995), self.books_between_years(1995, 100000))
+        self.assertEqual(self.data_source.books_between_years(1995), self.data_source.books_between_years(1995, 100000))
 
     def test_years_no_beginning(self):
-        assertEqual(self.books_between_years(None, 1990), self.books_between_years(-100000, 1990))
-    
+        self.assertEqual(self.data_source.books_between_years(None, 1990), self.data_source.books_between_years(-100000, 1990))
+
+   
 if __name__ == '__main__':
     unittest.main()
 
