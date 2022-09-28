@@ -1,0 +1,27 @@
+#! /usr/bin/python3
+
+import argparse
+import booksdatasource
+
+parser = argparse.ArgumentParser(description="Search through a CSV database of books")
+
+subparsers = parser.add_subparsers()
+
+parser_title = subparsers.add_parser('title', aliases=['t'], help="Search by substring of a title. Input substring to search. Prints out all the titles that match, sorted either alphabetically or by publication date. Defaults to alphabetical.")
+
+parser_title.add_argument('title_substring', nargs='+')
+title_flags = parser_title.add_mutually_exclusive_group()
+title_flags.add_argument('--alphabetical', '-a', action='store_true', help='Sort books alphabetically by title')
+title_flags.add_argument('--chronological', '-c', action='store_true', help='Sort books chronologically by publication date')
+
+parser_author = subparsers.add_parser('author', aliases=['a'], help="Search by substring of an author's name. Input substring to search. Prints out all the titles of each applicable author.")
+parser_author.add_argument('author_substring', nargs='+')
+
+parser_date = subparsers.add_parser('date', aliases=['d'], help="Search by publication date. Input starting year and ending year. Prints out all books inside its range, inclusive.")
+parser_date.add_argument('start_year', nargs=1, type=int)
+parser_date.add_argument('end_year', nargs=1, type=int)
+
+arguments = parser.parse_args()
+
+
+print(arguments)
