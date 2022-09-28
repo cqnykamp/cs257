@@ -6,48 +6,55 @@ Written by Luca Araújo and Charles Nykamp, 27 September 2022
 import argparse
 from booksdatasource import BooksDataSource
 
-parser = argparse.ArgumentParser(description="Search through a CSV database of books")
 
-subparsers = parser.add_subparsers(title='subcommands', description='Search by title substring, author substring, or publication date range')
+def main():
+    parser = argparse.ArgumentParser(description="This program searches through a list of books.")
 
-# title subcommand
-parser_title = subparsers.add_parser('title', aliases=['t'], help="Search by substring of a title. Input substring to search. Prints out all the titles that match, sorted either alphabetically or by publication date. Defaults to alphabetical.")
-parser_title.add_argument('title_substring', nargs='+')
-title_flags = parser_title.add_mutually_exclusive_group()
-title_flags.add_argument('--alphabetical', '-a', action='store_true', help='Sort books alphabetically by title')
-title_flags.add_argument('--chronological', '-c', action='store_true', help='Sort books chronologically by publication date')
+    subparsers = parser.add_subparsers(title='subcommands', description='Search by title substring, author substring, or publication date range')
 
-# author subcommand
-parser_author = subparsers.add_parser('author', aliases=['a'], help="Search by substring of an author's name. Input substring to search. Prints out all the titles of each applicable author.")
-parser_author.add_argument('author_substring', nargs='+')
+    # title subcommand
+    parser_title = subparsers.add_parser('title', aliases=['t'], help="Search by substring of a title. Input substring to search. Prints out all the titles that match, sorted either alphabetically or by publication date. Defaults to alphabetical.")
+    parser_title.add_argument('title_substring', nargs='+')
+    title_flags = parser_title.add_mutually_exclusive_group()
+    title_flags.add_argument('--alphabetical', '-a', action='store_true', help='Sort books alphabetically by title')
+    title_flags.add_argument('--chronological', '-c', action='store_true', help='Sort books chronologically by publication date')
 
-# date subcommand
-parser_date = subparsers.add_parser('date', aliases=['d'], help="Search by publication date. Input starting year and ending year. Prints out all books inside its range, inclusive.")
-parser_date.add_argument('start_year', nargs=1, type=int)
-parser_date.add_argument('end_year', nargs=1, type=int)
+    # author subcommand
+    parser_author = subparsers.add_parser('author', aliases=['a'], help="Search by substring of an author's name. Input substring to search. Prints out all the titles of each applicable author.")
+    parser_author.add_argument('author_substring', nargs='+')
+
+    # date subcommand
+    parser_date = subparsers.add_parser('date', aliases=['d'], help="Search by publication date. Input starting year and ending year. Prints out all books inside its range, inclusive.")
+    parser_date.add_argument('start_year', nargs=1, type=int)
+    parser_date.add_argument('end_year', nargs=1, type=int)
 
 
-arguments = parser.parse_args()
+    arguments = parser.parse_args()
 
-data_source = BooksDataSource("books1.csv")
+    data_source = BooksDataSource("books1.csv")
 
-if hasattr(arguments, 'title_substring'):
-    search_key = ' '.join(arguments.title_substring)
-    sort_by = "year" if arguments.chronological else "title"
+    if hasattr(arguments, 'title_substring'):
+        search_key = ' '.join(arguments.title_substring)
+        sort_by = "year" if arguments.chronological else "title"
 
-    for book in data_source.books(search_key, sort_by):
-        author_names = [a.given_name + " " + a.surname for a in book.authors]
-        print(book.title, book.publication_year, " and ".join(author_names))
+        for book in data_source.books(search_key, sort_by):
+            author_names = [a.given_name + " " + a.surname for a in book.authors]
+            print(book.title, book.publication_year, " and ".join(author_names))
 
-elif hasattr(arguments, 'author_substring'):
-    search_key = ' '.join(arguments.author_substring)
+    elif hasattr(arguments, 'author_substring'):
+        search_key = ' '.join(arguments.author_substring)
 
-    for author in data_source.authors(search_key):
-        years_alive = str(author.birth_year) + "-" + (str(author.death_year) if author.death_year != None else "")
-        print(author.given_name, author.surname, "(" + years_alive + ")")
+        for author in data_source.authors(search_key):
+            years_alive = str(author.birth_year) + "-" + (str(author.death_year) if author.death_year != None else "")
+            print(author.given_name, author.surname, "(" + years_alive + ")")
 
-elif hasattr(arguments, 'start_year') and hasattr(arguments, 'end_year'):
-    
-    for book in data_source.books_between_years(arguments.start_year[0], arguments.end_year[0]):
-        author_names = [a.given_name + " " + a.surname for a in book.authors]
-        print(book.title, book.publication_year, " and ".join(author_names))
+    elif hasattr(arguments, 'start_year') and hasattr(arguments, 'end_year'):
+        
+        for book in data_source.books_between_years(arguments.start_year[0], arguments.end_year[0]):
+            author_names = [a.given_name + " " + a.surname for a in book.authors]
+            print(book.title, book.publication_year, " and ".join(author_names))
+
+
+
+
+main()
