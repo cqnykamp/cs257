@@ -5,6 +5,9 @@
 
     For use in the "books" assignment at the beginning of Carleton's
     CS 257 Software Design class, Fall 2022.
+
+    Modified by Luca Araújo and Charles Nykamp, 26 September 2022
+
 '''
 
 import csv
@@ -34,6 +37,34 @@ class Book:
             thing as "same book". '''
         return self.title == other.title
 
+def get_given_name(string):
+    return string.split(' ')[0]
+
+def get_surname(string):
+    working_string = string.split(' ')
+    surname = ''
+    for i in range(1, len(working_string)):
+        substring = working_string[i]
+        if substring[0] == '(':
+            break
+        if surname != '':
+            surname += ' '
+        surname += substring
+    return surname
+
+def get_birth(string):
+    value = string.split(' ')[-1].split('-')[0][1:]
+    if value == '':
+        return None
+    return (int)(value)
+
+def get_death(string):
+    value = string.split(' ')[-1].split('-')[1][:-1]
+    if value == '':
+        return None
+    return (int)(value)
+
+
 class BooksDataSource:
     def __init__(self, books_csv_file_name):
         ''' The books CSV file format looks like this:
@@ -49,6 +80,22 @@ class BooksDataSource:
             suitable instance variables for the BooksDataSource object containing
             a collection of Author objects and a collection of Book objects.
         '''
+        self.authors_list = []
+        self.books_list = []
+        with open(books_csv_file_name, newline='') as csvfile:
+            csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            for row in csvreader:
+                authors_unprocessed_list = row[2].split(' and ')
+                authors_list_local = []
+
+                for author in authors_unprocessed_list:
+                    authors_list_local.append(Author(get_surname(author), get_given_name(author), get_birth(author), get_death(author)))
+
+                self.books_list.append(Book(row[0], (int)(row[1]), authors_list_local))
+
+                for author in authors_list_local:
+                    if author not in self.authors_list:
+                        self.authors_list.append(author)
         pass
 
     def authors(self, search_text=None):
@@ -57,7 +104,17 @@ class BooksDataSource:
             returns all of the Author objects. In either case, the returned list is sorted
             by surname, breaking ties using given name (e.g. Ann Brontë comes before Charlotte Brontë).
         '''
-        return []
+        ans = []
+        if search_text == None:
+            ans = self.authors_list
+        else:
+            for i in range(len(self.authors_list)):
+                if search_text.lower() in (self.authors_list[i].given_name + ' ' + self.authors_list[i].surname).lower():
+                    ans.append(self.authors_list[i])
+
+        ans.sort(key=lambda author: [author.surname.lower(), author.given_name.lower()])
+
+        return ans
 
     def books(self, search_text=None, sort_by='title'):
         ''' Returns a list of all the Book objects in this data source whose
@@ -71,7 +128,20 @@ class BooksDataSource:
                 default -- same as 'title' (that is, if sort_by is anything other than 'year'
                             or 'title', just do the same thing you would do for 'title')
         '''
-        return []
+        ans = []
+        if search_text == None:
+            ans = self.books_list
+        else:
+            for i in range(len(self.books_list)):
+                if search_text.lower() in self.books_list[i].title.lower():
+                    ans.append(self.books_list[i])
+
+        if sort_by.lower() == 'year':
+            ans.sort(key=lambda book: [book.publication_year, book.title.lower()])
+        else: 
+            ans.sort(key=lambda book: [book.title.lower(), book.publication_year])
+
+        return ans
 
     def books_between_years(self, start_year=None, end_year=None):
         ''' Returns a list of all the Book objects in this data source whose publication
@@ -84,5 +154,17 @@ class BooksDataSource:
             during start_year should be included. If both are None, then all books
             should be included.
         '''
-        return []
+        if start_year == None:
+            start_year = -1000000
+        if end_year == None:
+            end_year = 1000000
+
+        ans = []
+        for i in range(len(self.books_list)):
+            if self.books_list[i].publication_year >= start_year and self.books_list[i].publication_year <= end_year:
+                ans.append(self.books_list[i])
+
+        ans.sort(key=lambda book: [book.publication_year, book.title.lower()])
+
+        return ans
 
