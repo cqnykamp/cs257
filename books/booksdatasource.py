@@ -6,7 +6,7 @@
     For use in the "books" assignment at the beginning of Carleton's
     CS 257 Software Design class, Fall 2022.
 
-    Modified by Luca Araújo and Charles Nykamp, 26 September 2022
+    Modified by Luca Araújo and Charles Nykamp, 05 October 2022
 
 '''
 
@@ -18,6 +18,7 @@ class Author:
         self.given_name = given_name
         self.birth_year = birth_year
         self.death_year = death_year
+        self.books_list = []
 
     def __eq__(self, other):
         ''' For simplicity, we're going to assume that no two authors have the same name. '''
@@ -89,14 +90,18 @@ class BooksDataSource:
                 authors_list_local = []
 
                 for author in authors_unprocessed_list:
-                    authors_list_local.append(Author(get_surname(author), get_given_name(author), get_birth(author), get_death(author)))
+                    new_author = Author(get_surname(author), get_given_name(author), get_birth(author), get_death(author))
+                    authors_list_local.append(new_author)
 
-                self.books_list.append(Book(row[0], (int)(row[1]), authors_list_local))
+                new_book = Book(row[0], (int)(row[1]), authors_list_local)
+                self.books_list.append(new_book)
 
                 for author in authors_list_local:
                     if author not in self.authors_list:
+                        author.books_list.append(new_book)
                         self.authors_list.append(author)
-        pass
+                    else:
+                        self.authors_list[self.authors_list.index(author)].books_list.append(new_book)
 
     def authors(self, search_text=None):
         ''' Returns a list of all the Author objects in this data source whose names contain
@@ -112,7 +117,7 @@ class BooksDataSource:
                 if search_text.lower() in (self.authors_list[i].given_name + ' ' + self.authors_list[i].surname).lower():
                     ans.append(self.authors_list[i])
 
-        ans.sort(key=lambda author: [author.surname.lower(), author.given_name.lower()])
+        ans.sort(key=lambda author: (author.surname.lower(), author.given_name.lower()))
 
         return ans
 
@@ -137,9 +142,9 @@ class BooksDataSource:
                     ans.append(self.books_list[i])
 
         if sort_by.lower() == 'year':
-            ans.sort(key=lambda book: [book.publication_year, book.title.lower()])
+            ans.sort(key=lambda book: (book.publication_year, book.title.lower()))
         else: 
-            ans.sort(key=lambda book: [book.title.lower(), book.publication_year])
+            ans.sort(key=lambda book: (book.title.lower(), book.publication_year))
 
         return ans
 
@@ -164,7 +169,7 @@ class BooksDataSource:
             if self.books_list[i].publication_year >= start_year and self.books_list[i].publication_year <= end_year:
                 ans.append(self.books_list[i])
 
-        ans.sort(key=lambda book: [book.publication_year, book.title.lower()])
+        ans.sort(key=lambda book: (book.publication_year, book.title.lower()))
 
         return ans
 
