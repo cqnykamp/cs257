@@ -159,15 +159,25 @@ class BooksDataSource:
             during start_year should be included. If both are None, then all books
             should be included.
         '''
-        if start_year == None:
-            start_year = -1000000
-        if end_year == None:
-            end_year = 1000000
-
         ans = []
-        for i in range(len(self.books_list)):
-            if self.books_list[i].publication_year >= start_year and self.books_list[i].publication_year <= end_year:
-                ans.append(self.books_list[i])
+
+        if start_year == None and end_year == None:
+            ans = self.books_list
+
+        elif start_year == None:
+            for i in range(len(self.books_list)):
+                if self.books_list[i].publication_year <= end_year:
+                    ans.append(self.books_list[i])
+
+        elif end_year == None:
+            for i in range(len(self.books_list)):
+                if self.books_list[i].publication_year >= start_year:
+                    ans.append(self.books_list[i])
+                    
+        else:
+            for i in range(len(self.books_list)):
+                if self.books_list[i].publication_year >= start_year and self.books_list[i].publication_year <= end_year:
+                    ans.append(self.books_list[i])
 
         ans.sort(key=lambda book: (book.publication_year, book.title.lower()))
 
