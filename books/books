@@ -3,58 +3,114 @@
 Written by Luca Araújo and Charles Nykamp, 27 September 2022
 """
 
+import sys
 import argparse
 from booksdatasource import BooksDataSource
 
 
 def main():
-    parser = argparse.ArgumentParser(description="This program searches through a list of books.")
 
-    subparsers = parser.add_subparsers(title='subcommands', description='Search by title substring, author substring, or publication date range')
+    parser = argparse.ArgumentParser(usage='books [--help | -h] <command> <args>', add_help=False)
+    subparsers = parser.add_subparsers(title='commands', metavar='')
 
     # title subcommand
-    parser_title = subparsers.add_parser('title', aliases=['t'], help="Search by substring of a title. Input substring to search. Prints out all the titles that match, sorted either alphabetically or by publication date. Defaults to alphabetical.")
+    parser_title = subparsers.add_parser('title', aliases=['t'], usage=argparse.SUPPRESS, add_help=False)
     parser_title.add_argument('title_substring', nargs='+')
+
     title_flags = parser_title.add_mutually_exclusive_group()
-    title_flags.add_argument('--alphabetical', '-a', action='store_true', help='Sort books alphabetically by title')
-    title_flags.add_argument('--chronological', '-c', action='store_true', help='Sort books chronologically by publication date')
+    title_flags.add_argument('--alphabetical', '-a', action='store_true')
+    title_flags.add_argument('--chronological', '-c', action='store_true')
 
     # author subcommand
-    parser_author = subparsers.add_parser('author', aliases=['a'], help="Search by substring of an author's name. Input substring to search. Prints out all the titles of each applicable author.")
+    parser_author = subparsers.add_parser('author', aliases=['a'], usage=argparse.SUPPRESS, add_help=False)
     parser_author.add_argument('author_substring', nargs='+')
 
     # date subcommand
-    parser_date = subparsers.add_parser('date', aliases=['d'], help="Search by publication date. Input starting year and ending year. Prints out all books inside its range, inclusive.")
-    parser_date.add_argument('start_year', nargs=1, type=int)
-    parser_date.add_argument('end_year', nargs=1, type=int)
+    parser_date = subparsers.add_parser('date', aliases=['d'], usage=argparse.SUPPRESS, add_help=False)
+    parser_date.add_argument('start_year', nargs=1)
+    parser_date.add_argument('end_year', nargs=1)
 
+    # parse the arguments
+    relevant_args = sys.argv[1:]
+    if '--help' in relevant_args or '-h' in relevant_args:
+        display_usage_statement()
+        return
 
+    # If user not asking for help, continue as normal
     arguments = parser.parse_args()
+
+
+    # Search data source and display results
 
     data_source = BooksDataSource("books1.csv")
 
     if hasattr(arguments, 'title_substring'):
+        # Title command
         search_key = ' '.join(arguments.title_substring)
         sort_by = "year" if arguments.chronological else "title"
 
-        for book in data_source.books(search_key, sort_by):
-            author_names = [a.given_name + " " + a.surname for a in book.authors]
-            print(book.title, book.publication_year, " and ".join(author_names))
+        books = data_source.books(search_key, sort_by)
+        if not books:
+            print(f'There are no books which match "{search_key}"')
+        else:
+            display_books(books)
+
 
     elif hasattr(arguments, 'author_substring'):
+        # Author command
         search_key = ' '.join(arguments.author_substring)
+        authors = data_source.authors(search_key)
 
-        for author in data_source.authors(search_key):
-            years_alive = str(author.birth_year) + "-" + (str(author.death_year) if author.death_year != None else "")
+        if not authors:
+            print("There are no matching authors")
+
+        for author in authors:
+            years_alive = str(author.birth_year) + "-" + \
+                (str(author.death_year) if author.death_year != None else "")
+
             print(author.given_name, author.surname, "(" + years_alive + ")")
+            for book in author.books_list:
+                print(f"    {book.title}, published in {book.publication_year}")
+
 
     elif hasattr(arguments, 'start_year') and hasattr(arguments, 'end_year'):
-        
-        for book in data_source.books_between_years(arguments.start_year[0], arguments.end_year[0]):
-            author_names = [a.given_name + " " + a.surname for a in book.authors]
-            print(book.title, book.publication_year, " and ".join(author_names))
+        # Date command
+
+        # If user specified underscore for start/end, mark start/end as none
+        start_string = arguments.start_year[0]
+        start_year = None
+        if start_string.isnumeric():
+            start_year = int(start_string)
+        elif start_string != '_':
+            display_usage_statement()
+            return
+
+        end_string = arguments.end_year[0]
+        end_year = None
+        if end_string.isnumeric():
+            end_year = int(end_string)
+        elif end_string != '_':
+            display_usage_statement()
+            return
+
+        books = data_source.books_between_years(start_year, end_year)
+        if not books:
+            print(f'There are no books in this range')
+        else:
+            display_books(books)
 
 
 
+def display_books(books):
+    for book in books:
+        author_names = [a.given_name + " " + a.surname for a in book.authors]
+        print(f"{book.title}, written {' and '.join(author_names)}, published in {book.publication_year}")
 
-main()
+def display_usage_statement():
+    with open('./usage.txt') as usage_statement:
+        print(usage_statement.read())
+
+
+
+if __name__ == '__main__':
+    main()
