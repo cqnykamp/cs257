@@ -27,6 +27,7 @@ CREATE TABLE game_event_athlete_results (
     event_id integer,
     athlete_id integer,
     medal text,
-    athlete_height integer,
-    athlete_weight integer
+    noc_id integer,
+    athlete_height float,
+    athlete_weight float
 );
