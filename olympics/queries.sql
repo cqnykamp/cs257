@@ -24,3 +24,13 @@ ON events.id = game_event_athlete_results.event_id
 WHERE athletes.surname LIKE '%Louganis%'
 AND game_event_athlete_results.medal IS NOT NULL;
 
+
+
+SELECT nocs.name, COUNT(game_event_athlete_results.medal)
+FROM nocs
+INNER JOIN game_event_athlete_results
+ON nocs.id = game_event_athlete_results.noc_id
+WHERE game_event_athlete_results.medal = 'Gold'
+GROUP BY nocs.name
+ORDER BY COUNT(game_event_athlete_results.medal)
+DESC;
