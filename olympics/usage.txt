@@ -1,0 +1,22 @@
+python3 olympics.py
+
+DESCRIPTION
+    Prints Olympics-related data from a database
+
+USAGE
+    python3 olympics.py [--help/-h] <command> [<args>]
+
+COMMANDS
+    athletes-from <noc> 
+        Display all athletes from the specified national olympic committee.
+        <noc> must match a valid committee name
+        Ex: python3 olympics.py athletes-from Belgium
+
+    noc_rank
+        Rank the national olympic committees by number of gold medals
+        No argument.
+
+    athletes-in <event substring> [--limit/-l <limit>]
+        Display athletes who have participated in the specified event(s).
+        Includes any events which match specified string. Ordered by number of participation.
+        Optionally override the limit of athletes shown. Default is 25.
